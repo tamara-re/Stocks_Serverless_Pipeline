@@ -1,0 +1,60 @@
+name: Deploy Stocks Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.14.6"
+
+      - name: Install event_bridge_lambda dependencies
+        run: |
+          rm -rf event_bridge_package
+          mkdir event_bridge_package
+          pip install -r requirements.txt --target ./event_bridge_package
+          cp event_bridge_lambda/*.py ./event_bridge_package/
+          cd event_bridge_package && zip -r ../event_bridge_lambda.zip . && cd ..
+
+      - name: Install api_gateway_lambda dependencies
+        run: |
+          rm -rf api_gateway_package
+          mkdir api_gateway_package
+          pip install -r requirements.txt --target ./api_gateway_package
+          cp api_gateway_lambda/*.py ./api_gateway_package/
+          cd api_gateway_package && zip -r ../api_gateway_lambda.zip . && cd ..
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan
+        env:
+          TF_VAR_massive_api_key: ${{ secrets.MASSIVE_API_KEY }}
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_massive_api_key: ${{ secrets.MASSIVE_API_KEY }}
