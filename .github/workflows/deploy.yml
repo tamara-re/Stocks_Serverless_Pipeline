@@ -65,13 +65,33 @@ jobs:
         env:
           TF_VAR_massive_api_key: ${{ secrets.MASSIVE_API_KEY }}
 
+      - name: Invoke lambda on first deploy
+        run: |
+          count=$(aws dynamodb query \
+            --table-name $(terraform output -raw dynamodb_table_name) \
+            --key-condition-expression "PK = :pk" \
+            --expression-attribute-values '{":pk":{"S":"STOCK_WINNER"}}' \
+            --select COUNT \
+            --query 'Count' --output text)
+          echo "Existing DynamoDB record count: $count"
+          if [ "$count" -eq 0 ]; then
+            echo "No data found — invoking event_bridge_lambda to seed initial data"
+            aws lambda invoke \
+              --function-name $(terraform output -raw event_bridge_lambda_name) \
+              --payload '{}' \
+              /tmp/lambda_response.json
+            cat /tmp/lambda_response.json
+          else
+            echo "Data already exists — skipping lambda invocation"
+          fi
+
       - name: Build React frontend
         id: build
         run: |
           api_url=$(terraform output -raw api_url)
           echo "api_url=$api_url" >> $GITHUB_OUTPUT
           cd frontend
-          npm ci
+          npm install
           VITE_API_URL=$api_url npm run build
 
       - name: Sync frontend to S3
