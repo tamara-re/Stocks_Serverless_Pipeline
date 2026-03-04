@@ -125,13 +125,12 @@
 
           const sign = pct >= 0 ? "+" : "";
           const cls  = pct >= 0 ? "gain" : "loss";
-          return `
-            <tr>
-      <td class="ticker">${row.ticker_symbol || '---'}</td>
-      <td>${row.date || '---'}</td>
-      <td>$${price.toFixed(2)}</td>
-      <td><span class="badge ${cls}">${sign}${pct.toFixed(2)}%</span></td>
-    </tr>`;
+          return '<tr>' +
+            '<td class="ticker">' + (row.ticker_symbol || '---') + '</td>' +
+            '<td>' + (row.date || '---') + '</td>' +
+            '<td>$' + price.toFixed(2) + '</td>' +
+            '<td><span class="badge ' + cls + '">' + sign + pct.toFixed(2) + '%</span></td>' +
+            '</tr>';
         }).join("");
       } catch (err) {
         let displayError = err.message;
@@ -142,11 +141,7 @@
 
         }
 
-        tbody.innerHTML = `
-
-          <tr>
-            <td colspan="4" class="status-msg error-msg">${displayError}</td>
-          </tr>`;
+        tbody.innerHTML = '<tr><td colspan="4" class="status-msg error-msg">' + displayError + '</td></tr>';
 
         console.error("Fetch Error:", err);;
       }
