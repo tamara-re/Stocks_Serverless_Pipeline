@@ -1,5 +1,5 @@
 from models import StockQuote, Winner
-from utils import get_todays_date
+from utils import get_yesterdays_date
 from repository import get_latest_stock_date, save_winner
 from client import fetch_stock_quotes
 from datetime import timedelta
@@ -12,11 +12,11 @@ DEFAULT_LOOKBACK_DAYS = 30
 def lambda_handler(event, context):
 
     latest_stock_date = get_latest_stock_date()
-    today = get_todays_date()
+    yesterday = get_yesterdays_date()
 
-    from_date = (latest_stock_date + timedelta(days=1)) if latest_stock_date else (today - timedelta(days=DEFAULT_LOOKBACK_DAYS))
+    from_date = (latest_stock_date + timedelta(days=1)) if latest_stock_date else (yesterday - timedelta(days=DEFAULT_LOOKBACK_DAYS))
 
-    stock_quotes_map = fetch_stock_quotes(STOCKS, from_date, today)
+    stock_quotes_map = fetch_stock_quotes(STOCKS, from_date, yesterday)
 
     winners_written = 0
     for date_iso, daily_quotes in stock_quotes_map.items():

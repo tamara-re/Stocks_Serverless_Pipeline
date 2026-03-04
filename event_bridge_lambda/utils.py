@@ -1,11 +1,11 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 EASTERN = ZoneInfo("America/New_York")
 
-# Called by lambda_handler to establish today's date in Eastern Time as the upper bound for quote fetching.
-def get_todays_date() -> date:
-    return datetime.now(EASTERN).date()
+# Called by lambda_handler to establish yesterday's date in Eastern Time as the upper bound for quote fetching.
+def get_yesterdays_date() -> date:
+    return datetime.now(EASTERN).date() - timedelta(days=1)
 
 
 # Called by fetch_stock_quotes to convert each bar's millisecond timestamp into an ISO date string used as the map key.
