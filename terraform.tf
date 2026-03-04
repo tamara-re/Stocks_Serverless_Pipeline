@@ -155,7 +155,7 @@ resource "aws_lambda_function" "event_bridge_lambda" {
   handler          = "handler.lambda_handler"
   runtime          = "python3.12"
   filename         = var.event_bridge_lambda_zip_path
-  timeout          = 180
+  timeout          = 600
   source_code_hash = filebase64sha256(var.event_bridge_lambda_zip_path)
 
   environment {

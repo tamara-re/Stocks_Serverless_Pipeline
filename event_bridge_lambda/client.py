@@ -26,12 +26,20 @@ def fetch_stock_quotes(stocks: list[str], start_date: date, today: date) -> dict
 
         url = f"{MASSIVE_BASE_URL}/aggs/ticker/{stock}/range/1/day/{start_date}/{today}"
 
-        response = requests.get(
-            url,
-            params={"apiKey": MASSIVE_API_KEY, "adjusted": "true"},
-            timeout=10,
-        )
+        for attempt in range(3):
+            response = requests.get(
+                url,
+                params={"apiKey": MASSIVE_API_KEY, "adjusted": "true"},
+                timeout=10,
+            )
+            if response.status_code == 429:
+                wait = int(response.headers.get("Retry-After", 60))
+                time.sleep(wait)
+                continue
+            break
 
+        if response.status_code == 429:
+            raise RuntimeError(f"Rate limit exceeded for {stock} after 3 attempts")
         if 400 <= response.status_code < 500:
             raise ValueError(f"Massive API client error: {response.status_code} - {response.text}")
         if 500 <= response.status_code < 600:
