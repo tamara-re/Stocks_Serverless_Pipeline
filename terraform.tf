@@ -197,7 +197,7 @@ resource "aws_lambda_function" "api_gateway_lambda" {
 resource "aws_cloudwatch_event_rule" "event_bridge_trigger" {
   name                = "stocks-event-bridge-trigger"
   description         = "Fires Mon-Fri at 9 PM EST (02:00 UTC next day / 10 PM EDT in summer). EventBridge runs in UTC."
-  schedule_expression = "cron(0 2 ? * TUE-SAT *)"
+  schedule_expression = "cron(5 3 ? * TUE-SAT *)"
   state               = "ENABLED"
 
   tags = {
