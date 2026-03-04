@@ -26,6 +26,7 @@ Make sure the following are installed locally before starting:
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 - [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.3.0
 - [Python](https://www.python.org/downloads/) 3.12
+- [Node.js](https://nodejs.org/) 20 (for the React frontend build)
 - A GitHub account with this repository forked or cloned
 
 ---
@@ -151,6 +152,8 @@ The pipeline will:
 1. Package both Lambda functions
 2. Run `terraform plan`
 3. Run `terraform apply` — provisioning all AWS infrastructure
+4. Run `npm ci && npm run build` inside `frontend/` with `VITE_API_URL` set from Terraform output
+5. Sync `frontend/dist/` to the S3 bucket with `aws s3 sync`
 
 Monitor progress in your repository under the **Actions** tab.
 

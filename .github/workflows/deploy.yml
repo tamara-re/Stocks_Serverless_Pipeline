@@ -18,6 +18,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -29,6 +34,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: "1.14.6"
+          terraform_wrapper: false
 
       - name: Install event_bridge_lambda dependencies
         run: |
@@ -58,3 +64,16 @@ jobs:
         run: terraform apply -auto-approve
         env:
           TF_VAR_massive_api_key: ${{ secrets.MASSIVE_API_KEY }}
+
+      - name: Build React frontend
+        id: build
+        run: |
+          api_url=$(terraform output -raw api_url)
+          echo "api_url=$api_url" >> $GITHUB_OUTPUT
+          cd frontend
+          npm ci
+          VITE_API_URL=$api_url npm run build
+
+      - name: Sync frontend to S3
+        run: |
+          aws s3 sync frontend/dist s3://$(terraform output -raw frontend_bucket)/ --delete

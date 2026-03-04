@@ -315,20 +315,6 @@ resource "aws_s3_bucket_policy" "frontend_public" {
   depends_on = [aws_s3_bucket_public_access_block.frontend]
 }
 
-locals {
-  frontend_html = templatefile("frontend/index.html", {
-    api_url = "${aws_apigatewayv2_stage.default.invoke_url}/movers"
-  })
-}
-
-resource "aws_s3_object" "frontend_html" {
-  bucket       = aws_s3_bucket.frontend.id
-  key          = "index.html"
-  content      = local.frontend_html
-  content_type = "text/html"
-  etag         = md5(local.frontend_html)
-}
-
 data "aws_caller_identity" "current" {}
 
 # ── Outputs ────────────────────────────────────────────────────────────────────
@@ -350,11 +336,16 @@ output "event_bridge_rule_name" {
 }
 
 output "api_url" {
-  description = "GET /movers endpoint — paste this into index.html"
+  description = "GET /movers endpoint"
   value       = "${aws_apigatewayv2_stage.default.invoke_url}/movers"
 }
 
 output "frontend_url" {
   description = "Public URL for the frontend"
   value       = "http://${aws_s3_bucket_website_configuration.frontend.website_endpoint}"
+}
+
+output "frontend_bucket" {
+  description = "S3 bucket name for the frontend (used by CI/CD S3 sync)"
+  value       = aws_s3_bucket.frontend.id
 }
