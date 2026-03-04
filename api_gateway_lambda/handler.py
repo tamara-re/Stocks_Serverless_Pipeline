@@ -1,10 +1,11 @@
 import json
+import os
 import time
 from repository import get_last_n_winners
 
 MAX_RETRIES = 3
 RETRY_DELAY_SECONDS = 1
-ALLOWED_ORIGIN = "https://your-s3-bucket.s3-website-us-east-1.amazonaws.com"
+ALLOWED_ORIGIN = os.environ["ALLOWED_ORIGIN"]
 
 # Entry point for API Gateway GET /movers; retrieves the last 7 winners from DynamoDB
 # via get_last_n_winners and returns them as a JSON response with CORS headers.

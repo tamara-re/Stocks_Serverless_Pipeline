@@ -184,6 +184,7 @@ resource "aws_lambda_function" "api_gateway_lambda" {
   environment {
     variables = {
       DYNAMODB_TABLE = var.dynamodb_table_name
+      ALLOWED_ORIGIN = "http://${aws_s3_bucket_website_configuration.frontend.website_endpoint}"
     }
   }
 
@@ -236,7 +237,7 @@ resource "aws_apigatewayv2_api" "stocks_api" {
   protocol_type = "HTTP"
 
   cors_configuration {
-    allow_origins = ["*"]
+    allow_origins = ["http://${aws_s3_bucket_website_configuration.frontend.website_endpoint}"]
     allow_methods = ["GET", "OPTIONS"]
     allow_headers = ["content-type"]
   }
@@ -314,12 +315,18 @@ resource "aws_s3_bucket_policy" "frontend_public" {
   depends_on = [aws_s3_bucket_public_access_block.frontend]
 }
 
+locals {
+  frontend_html = templatefile("frontend/index.html", {
+    api_url = "${aws_apigatewayv2_stage.default.invoke_url}/movers"
+  })
+}
+
 resource "aws_s3_object" "frontend_html" {
   bucket       = aws_s3_bucket.frontend.id
   key          = "index.html"
-  source       = "frontend/index.html"
+  content      = local.frontend_html
   content_type = "text/html"
-  etag         = filemd5("frontend/index.html")
+  etag         = md5(local.frontend_html)
 }
 
 data "aws_caller_identity" "current" {}
